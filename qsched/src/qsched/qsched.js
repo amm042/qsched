@@ -70,7 +70,6 @@ class Qsched extends Component {
             errorMessage: res.error
           })
         }else{
-          console.log("hgi")
           if (res.length === 2){
             console.log("two files to download")
             fileDownload(this.mkcsv(res[0]), 'schedule.csv')

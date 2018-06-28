@@ -10,9 +10,11 @@ import os
 import stat
 import csv
 import sys
-import numpy as np
+#import numpy as np
+from numpy import fft
 import math
 import random
+import scipy
 from scipy.integrate import quad
 from scipy.integrate import fixed_quad
 import argparse
@@ -115,11 +117,11 @@ def qsched(dict_par):
                 if bias not in [1, 1.5, 2]:
                     raise ValueError('For quant-sin bias must be 1, 1.5, or 2')
                 if bias == 1:
-                    return (1 - np.sin(x))
+                    return (1 - scipy.sin(x))
                 elif bias == 1.5:
-                    return ((1 - np.sin(x)) ** 1.8)
+                    return ((1 - scipy.sin(x)) ** 1.8)
                 elif bias == 2:
-                    return ((0.85 - np.sin(x)) ** 2)
+                    return ((0.85 - scipy.sin(x)) ** 2)
             time /= 2
         elif type == 'quant-poly':
             if bias not in [1, 1.5, 2]:
@@ -138,15 +140,15 @@ def qsched(dict_par):
                     return ((0.92 - x) ** 4)
         elif type == 'noweight':
             def y(x):
-                return np.exp(-x)
+                return scipy.exp(-x)
         elif type == 'quant-exp':
             def y(x):
-                return np.exp(-bias * x)
+                return scipy.exp(-bias * x)
         elif type == 'guassian':
-            a_guass = ((math.pi)**2 * (bias * lw)**2)/(4 * np.log(2))
+            a_guass = ((math.pi)**2 * (bias * lw)**2)/(4 * scipy.log(2))
             time *= pi
             def y(x):
-                return (np.exp(-a_guass * x**2))
+                return (scipy.exp(-a_guass * x**2))
         elif type == 'linear':
             lin_decay = dict_par['linear'][dim]
             time = lin_decay
@@ -280,9 +282,9 @@ def qsched(dict_par):
         for i in range(0, number_quantile):
             temp = dimt1t2[i] - 1
             listZF[temp] = 1
-        psf = np.fft.fft(listZF)
+        psf = fft.fft(listZF)
         dwell = 1
-        freq = np.fft.fftfreq(range_quantile, dwell)
+        freq =fft.fftfreq(range_quantile, dwell)
 
         # make psf filename if this is 1D schedule
         """

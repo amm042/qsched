@@ -1,0 +1,11 @@
+{
+    "dev": {
+        "app_function": "server.qapp",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "project_name": "qsched",
+        "runtime": "python3.6",
+        "s3_bucket": "zappa-qsched",
+        "slim_handler": true
+    }
+}
