@@ -3,6 +3,7 @@ import {Card, CardBody, CardText, CardTitle,
         Form, FormGroup, Label, Input, Button,
         Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap';
 
+// to 'download' js objects (csv results)
 let fileDownload = require('js-file-download')
 
 //let app = 'http://localhost:5000/qsched'
@@ -36,13 +37,11 @@ class Qsched extends Component {
   }
   handleChange(e){
     let k = {}
-
     k[e.target.id] = e.target.type==='checkbox' ? e.target.checked : e.target.value
-
-    //console.log(k)
     this.setState(k)
   }
   mkcsv(data){
+    // returns a CSV-like string from a JS array object
     return data.map(x => {
       if (x.length === undefined)
         return x
@@ -51,9 +50,10 @@ class Qsched extends Component {
     }).join("\n")
   }
   handleRun(evt){
-    console.log(this.state)
+    //console.log(this.state)
     evt.preventDefault()
 
+    // POST the arguments to the server and wait for a response
     fetch(app, {
       body: JSON.stringify(this.state),
       headers: {
@@ -63,19 +63,25 @@ class Qsched extends Component {
     })
       .then(res => res.json())
       .then(res => {
-        console.log("got back s", res)
+        //console.log("got back s", res)
+
         if (res.error !== undefined){
+          // something went wrong, show the modal dialog with the message
           this.setState({
             showModal: true,
             errorMessage: res.error
           })
         }else{
+          // got the result (should set success:true or something in the future)
+          // to be sure, but we didn't get an error at least!
+          // convert the JS object to a CSV string and trigger a download
+          // from the browser.
           if (res.length === 2){
-            console.log("two files to download")
+            //console.log("two files to download")
             fileDownload(this.mkcsv(res[0]), 'schedule.csv')
             fileDownload(this.mkcsv(res[1]), 'schedule_psf.csv')
           }else{
-            console.log("one file to download")
+            //console.log("one file to download")
             fileDownload(this.mkcsv(res), 'schedule.csv')
           }
         }
@@ -83,6 +89,8 @@ class Qsched extends Component {
 
   }
   render(){
+    // returns a form containing all of the possible input arguments to
+    // the scheduler.
     return(
         <div>
           <Modal isOpen={this.state.showModal} toggle={this.toggleModal}>
@@ -97,7 +105,7 @@ class Qsched extends Component {
           <Card className="m-4">
             <CardBody>
               <CardTitle>qsched</CardTitle>
-              <CardText>Some intro text goes here. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec fermentum risus, nec sollicitudin ligula. Aliquam a posuere metus. Sed eget tincidunt nunc. Quisque gravida pellentesque mattis. Cras at quam ullamcorper, placerat magna at, ultricies ex. Proin volutpat orci quis ornare porta. Phasellus non gravida elit. Nunc sed purus et mauris posuere tempus.</CardText>
+              <CardText>This is a public beta release of a 1D and 2D NUS scheduling routine.</CardText>
               <hr/>
               <Form onSubmit={this.handleRun}>
                 <FormGroup>
