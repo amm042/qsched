@@ -691,7 +691,7 @@ if __name__=="__main__":
 
     dict_par = proc_par(argin2dict(parser.parse_args(), parser))
 
-    print(dict_par)
+    #print(dict_par)
 
     if len(dict_par['dims']) == 1:
         schedule, psf = qsched(dict_par)
