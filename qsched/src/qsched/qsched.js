@@ -54,8 +54,7 @@ class Qsched extends Component {
                 output_type: 'varian',
                 inclusion: true,
                 backfill: true,
-                appendcorner: true
-              },
+                appendcorner: true},
               'HSQC num 2': {
                 type: 'quant-sin',
                 dims: '55',
@@ -65,8 +64,7 @@ class Qsched extends Component {
                 output_type: 'varian',
                 inclusion: true,
                 backfill: true,
-                appendcorner: true
-              }
+                appendcorner: true}
             },
       '2': {
         'TOCSY': {
