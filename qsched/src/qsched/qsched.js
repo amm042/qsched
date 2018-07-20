@@ -45,18 +45,29 @@ class Qsched extends Component {
     }
     this.samples = {
       '1': {
-        'HSQC': {
-          type: 'quant-sin',
-          dims: '1024',
-          bins: '128',
-          bias: '1.0',
-          evolution: '2.5',
-          output_type: 'varian',
-          inclusion: true,
-          backfill: true,
-          appendcorner: true
-        }
-      },
+              'HSQC': {
+                type: 'quant-sin',
+                dims: '1024',
+                bins: '128',
+                bias: '1.0',
+                evolution: '2.5',
+                output_type: 'varian',
+                inclusion: true,
+                backfill: true,
+                appendcorner: true
+              },
+              'HSQC num 2': {
+                type: 'quant-sin',
+                dims: '55',
+                bins: '44',
+                bias: '1.0',
+                evolution: '2.5',
+                output_type: 'varian',
+                inclusion: true,
+                backfill: true,
+                appendcorner: true
+              }
+            },
       '2': {
         'TOCSY': {
           type: 'quant-poly',
@@ -199,8 +210,10 @@ class Qsched extends Component {
     // returns a form containing all of the possible input arguments to
     // the scheduler.
     let samples= Object.keys(this.samples[this.state.activeTab]).map((x)=>{
-      return <DropdownItem key={x} tag="a"
+      console.log("smap--", x)
 
+
+      return <DropdownItem key={x} tag="a"
         onClick={()=>{this.history.push(
           {
             search: '?mode='+this.state.activeTab+'&example='+x,
@@ -211,6 +224,7 @@ class Qsched extends Component {
           })}}>{x}</DropdownItem>
     })
 
+    console.log("SAMPLES:", samples);
     return(
         <div>
           <Modal isOpen={this.state.showModal} toggle={this.toggleModal}>
