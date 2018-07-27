@@ -6,6 +6,13 @@ import collections
 # load the qsched_097 module.
 from qsched_097 import qsched as qs
 
+
+"""
+How to run for debugging:
+$ export FLASK_APP=server.py
+$ flask run
+"""
+
 qapp = Flask(__name__)
 
 # opne up to the world.
@@ -71,8 +78,13 @@ def qsched():
         # numify does the hard work converting strings to their correct types
         # while preserving arras for array-like args.
         for nums in numtypes.keys():
-            if nums in args:
-                args[nums] = numify(numtypes[nums], args[nums])
+            try:
+                if nums in args:
+                    args[nums] = numify(numtypes[nums], args[nums])
+            except Exception as x:
+                qapp.logger.warning(x)
+                return jsonify({"error":"{} for argument {}.".format(
+                        x, nums), "args": args})
 
         #qapp.logger.info(args)
 

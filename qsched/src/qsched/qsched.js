@@ -12,8 +12,8 @@ import createHistory from 'history/createBrowserHistory'
 
 let fileDownload = require('js-file-download')
 
-//let app = 'http://localhost:5000/qsched'
-let app = 'https://3w96mpfgyb.execute-api.us-east-1.amazonaws.com/dev/qsched'
+let app = 'http://localhost:5000/qsched'
+//let app = 'https://3w96mpfgyb.execute-api.us-east-1.amazonaws.com/dev/qsched'
 
 class Qsched extends Component {
   constructor(props){
@@ -28,7 +28,7 @@ class Qsched extends Component {
       type: 'quant-sin',
       type2: 'quant-poly',
       dims: '',
-      jitter2d: '',
+      jitter2d: '0.7',
       bins: '',
       bias: '1.0',
       evolution: '',
