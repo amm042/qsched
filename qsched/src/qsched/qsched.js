@@ -97,10 +97,13 @@ class Qsched extends Component {
     this.handleRun = this.handleRun.bind(this)
     this.toggleModal = this.toggleModal.bind(this)
     this.toggleTab = this.toggleTab.bind(this)
+    this.checkLocation = this.checkLocation.bind(this)
     this.history = createHistory()
 
-    this.unlisten = this.history.listen((loc, act)=> {
+    this.unlisten = this.history.listen(this.checkLocation)
 
+  }
+  checkLocation(loc,act){
       let q = queryString.parse(loc.search)
       q.mode = parseInt(q.mode, 10)
       // console.log('q --- ', q)
@@ -126,8 +129,6 @@ class Qsched extends Component {
             state: {mode: 1, example: defaultEx}
           })
       }
-    })
-
   }
   componentDidMount(){
     if (this.history.location.search === ""){
@@ -138,7 +139,7 @@ class Qsched extends Component {
           state: {mode: 1, example: defaultEx}
         })
     }else{
-
+      this.checkLocation(this.history.location)
     }
 
   }
