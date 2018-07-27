@@ -19,7 +19,7 @@ class Qsched extends Component {
   constructor(props){
     super(props)
     this.state = {
-      activeTab: '1',
+      activeTab: 1,
       helpOpen: false,
       helpTopic: "",
       dropdownOpen: false,
@@ -100,8 +100,10 @@ class Qsched extends Component {
     this.history = createHistory()
 
     this.unlisten = this.history.listen((loc, act)=> {
-      // console.log('loc', loc)
+
       let q = queryString.parse(loc.search)
+      q.mode = parseInt(q.mode, 10)
+      // console.log('q --- ', q)
 
       if (('example' in q) &&
           ('mode' in q) &&
@@ -115,11 +117,13 @@ class Qsched extends Component {
       }else{
         // url was invalid, go to the default
         //document.location.search = '?mode=1&example=HSQC'
+        let defaultEx = Object.keys(this.samples[1])[0]
+
         // console.log("bad loc, redirect")
         this.history.replace(
           {
-            search:'?mode=1&example=HSQC',
-            state: {mode: 1, example: 'HSQC'}
+            search:'?mode=1&example=' + encodeURI(defaultEx),
+            state: {mode: 1, example: defaultEx}
           })
       }
     })
@@ -127,10 +131,11 @@ class Qsched extends Component {
   }
   componentDidMount(){
     if (this.history.location.search === ""){
+      let defaultEx = Object.keys(this.samples[1])[0]
       this.history.replace(
         {
-          search:'?mode=1&example=HSQC',
-          state: {mode: 1, example: 'HSQC'}
+          search:'?mode=1&example=' + encodeURI(defaultEx),
+          state: {mode: 1, example: defaultEx}
         })
     }else{
 
@@ -177,7 +182,7 @@ class Qsched extends Component {
 
     // fixup for 2d schedule generator function
     let q = Object.assign({}, this.state)
-    if (this.state.activeTab === '2'){
+    if (this.state.activeTab === 2){
       q.type = q.type + ' ' + q.type2
     }
     // POST the arguments to the server and wait for a response
@@ -269,15 +274,15 @@ class Qsched extends Component {
               <Nav tabs>
                 <NavItem>
                   <NavLink
-                    className={classnames({ active: this.state.activeTab === '1' })}
-                    onClick={() => { this.toggleTab('1'); }}>
+                    className={classnames({ active: this.state.activeTab === 1 })}
+                    onClick={() => { this.toggleTab(1); }}>
                   1 Dimension
                   </NavLink>
                 </NavItem>
                 <NavItem>
                   <NavLink
-                    className={classnames({ active: this.state.activeTab === '2' })}
-                    onClick={() => { this.toggleTab('2'); }}>
+                    className={classnames({ active: this.state.activeTab === 2 })}
+                    onClick={() => { this.toggleTab(2); }}>
                   2 Dimensions
                   </NavLink>
                 </NavItem>
@@ -318,7 +323,7 @@ class Qsched extends Component {
                   </Col>
                 </FormGroup>
 
-                {this.state.activeTab==='2' ?
+                {this.state.activeTab === 2 ?
                 <FormGroup row>
                   <Label sm={5}>Type of schedule generator in 2nd dimension</Label>
                   <Col sm={6} className="m-auto">
@@ -353,7 +358,7 @@ class Qsched extends Component {
                 </FormGroup>
 
 
-                  {this.state.activeTab==='2'?
+                  {this.state.activeTab === 2?
                   <FormGroup row>
                   <Label sm={5}>Percent jitter for 2D quantiles</Label>
                   <Col sm={6} className="m-auto">
@@ -448,7 +453,7 @@ class Qsched extends Component {
 
 
 
-                {this.state.activeTab==='2' ?
+                {this.state.activeTab===2 ?
                 <FormGroup check>
                     <Label check>
                       <Input type="checkbox"  id="inclusion"
@@ -458,7 +463,7 @@ class Qsched extends Component {
                   </FormGroup> : ""
                 }
 
-                {this.state.activeTab==='2' ?
+                {this.state.activeTab===2 ?
                   <FormGroup check>
                     <Label check>
                       <Input type="checkbox" id="backfill"
@@ -468,7 +473,7 @@ class Qsched extends Component {
                   </FormGroup> : ""
                 }
 
-                {this.state.activeTab==='2' ?
+                {this.state.activeTab===2 ?
                   <FormGroup check>
                     <Label check>
                       <Input type="checkbox" id="appendcorner"
