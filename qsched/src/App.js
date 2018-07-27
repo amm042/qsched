@@ -10,12 +10,14 @@ class App extends Component {
       <div>
       <Container>
         <Qsched/>
-
         <Qfooter/>
       </Container>
       </div>
     );
   }
 }
+
+
+
 
 export default App;

@@ -1,9 +1,15 @@
 import React, { Component } from 'react';
-import {Card, CardBody, CardText, CardTitle,
+import {Card, CardBody, CardText, Col,
         Form, FormGroup, Label, Input, Button,
-        Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap';
-
+        Modal, ModalHeader, ModalBody, ModalFooter,
+        Dropdown, DropdownMenu, DropdownItem, DropdownToggle,
+        Nav, NavItem, NavLink, Badge} from 'reactstrap'
+import classnames from 'classnames'
+import queryString from 'query-string'
 // to 'download' js objects (csv results)
+
+import createHistory from 'history/createBrowserHistory'
+
 let fileDownload = require('js-file-download')
 
 //let app = 'http://localhost:5000/qsched'
@@ -13,14 +19,19 @@ class Qsched extends Component {
   constructor(props){
     super(props)
     this.state = {
+      activeTab: '1',
+      helpOpen: false,
+      helpTopic: "",
+      dropdownOpen: false,
       showModal: false,
       errorMessage: "",
       type: 'quant-sin',
-      dims: '1024',
-      jitter2d: '0.7',
-      bins: '128',
+      type2: 'quant-poly',
+      dims: '',
+      jitter2d: '',
+      bins: '',
       bias: '1.0',
-      evolution: '2.5',
+      evolution: '',
       output_type: 'varian',
       inclusion: true,
       backfill: true,
@@ -28,9 +39,120 @@ class Qsched extends Component {
       linear: '0.7',
       appendcorner: true
     }
+    this.help = {
+      type: "Is there a ‘one-size-fits-all’ schedule? There are many ways to select and optimize schedules, but if you want an “everyday” schedule that can be used in a variety of settings, experiences suggests that sampling 25-33% of total points, a quant-sin or quant-poly generator, Bias = 1.5 and Evolution = 2.0 generally results in widely applicable schedules.",
+      jitter2d: "Jitter (between 0.01-0.99) defines the length  of each edge of a box that is centered in each quantile; thus specifying jitter = 0.7 means that the sample will be jittered in a (-.7 x 0.7) ---> 50% centered box"
+    }
+
+
+
+    this.samples = {
+          1: {
+                  'Basic HSQC': {
+                    type: 'quant-sin',
+                    dims: '256',
+                    bins: '96',
+                    bias: '1.5',
+                    evolution: '2.0',
+                    output_type: 'varian'
+                  },
+                  'High Res HSQC': {
+                    type: 'quant-sin',
+                    dims: '1024',
+                    bins: '256',
+                    bias: '1.5',
+                    evolution: '2.5',
+                    output_type: 'varian'}
+                },
+          2: {
+            'Basic HNCA': {
+              type: 'quant-sin',
+              type2: 'quant-sin',
+              dims: '64 32',
+              jitter2d: '0.7',
+              bins: '32 20',
+              bias: '1.5 1.5',
+              evolution: '2.0 2.0',
+              output_type: 'varian',
+              inclusion: true,
+              backfill: true,
+              appendcorner: true},
+            'High Res HNCA': {
+              type: 'quant-sin',
+              type2: 'quant-sin',
+              dims: '128 40',
+              jitter2d: '0.7',
+              bins: '48 20',
+              bias: '1.5 1.5',
+              evolution: '2.0 2.0',
+              output_type: 'varian',
+              inclusion: false,
+              backfill: true,
+              appendcorner: true
+          }
+          }
+        }
+
     this.handleChange = this.handleChange.bind(this)
     this.handleRun = this.handleRun.bind(this)
     this.toggleModal = this.toggleModal.bind(this)
+    this.toggleTab = this.toggleTab.bind(this)
+    this.history = createHistory()
+
+    this.unlisten = this.history.listen((loc, act)=> {
+      // console.log('loc', loc)
+      let q = queryString.parse(loc.search)
+
+      if (('example' in q) &&
+          ('mode' in q) &&
+          (q.mode in this.samples) &&
+          (q.example in this.samples[q.mode])){
+
+        let s = Object.assign({activeTab:q.mode},
+          this.samples[q.mode][q.example])
+
+        this.setState(s)
+      }else{
+        // url was invalid, go to the default
+        //document.location.search = '?mode=1&example=HSQC'
+        // console.log("bad loc, redirect")
+        this.history.replace(
+          {
+            search:'?mode=1&example=HSQC',
+            state: {mode: 1, example: 'HSQC'}
+          })
+      }
+    })
+
+  }
+  componentDidMount(){
+    if (this.history.location.search === ""){
+      this.history.replace(
+        {
+          search:'?mode=1&example=HSQC',
+          state: {mode: 1, example: 'HSQC'}
+        })
+    }else{
+
+    }
+
+  }
+  showHelp(topic){
+    if (topic in this.help){
+      this.setState({
+        helpOpen: true,
+        helpTopic: topic
+      })
+    }else{
+      this.setState({helpOpen:false})
+    }
+  }
+  toggleTab(tab) {
+    if (this.state.activeTab !== tab) {
+      this.setState({
+        activeTab: tab
+      });
+    }
   }
   toggleModal(){
     this.setState({showModal: !this.state.showModal})
@@ -53,9 +175,14 @@ class Qsched extends Component {
     //console.log(this.state)
     evt.preventDefault()
 
+    // fixup for 2d schedule generator function
+    let q = Object.assign({}, this.state)
+    if (this.state.activeTab === '2'){
+      q.type = q.type + ' ' + q.type2
+    }
     // POST the arguments to the server and wait for a response
     fetch(app, {
-      body: JSON.stringify(this.state),
+      body: JSON.stringify(q),
       headers: {
         "Content-Type": "application/json"
       },
@@ -91,6 +218,20 @@ class Qsched extends Component {
   render(){
     // returns a form containing all of the possible input arguments to
     // the scheduler.
+
+    let samples= Object.keys(this.samples[this.state.activeTab]).map((x)=>{
+      return <DropdownItem key={x} tag="a"
+
+        onClick={()=>{this.history.push(
+          {
+            search: '?mode='+this.state.activeTab+'&example='+x,
+            state: {
+              mode: this.state.activeTab,
+              example: x
+            }
+          })}}>{x}</DropdownItem>
+    })
+    // console.log('SAMPLES:', samples)
     return(
         <div>
           <Modal isOpen={this.state.showModal} toggle={this.toggleModal}>
@@ -102,15 +243,65 @@ class Qsched extends Component {
                <Button color="primary" onClick={this.toggleModal}>OK</Button>
              </ModalFooter>
           </Modal>
+          <Modal isOpen={this.state.helpOpen}>
+            <ModalBody>
+              {this.help[this.state.helpTopic]}
+            </ModalBody>
+            <ModalFooter>
+              <Button color="primary" onClick={()=>this.showHelp('')}>OK</Button>
+            </ModalFooter>
+          </Modal>
+
+
+          <img src="http://www.facstaff.bucknell.edu/drovnyak/QSched_MarkDSR_Logo128W.png" height="100" width="128" alt="Logo"  />
+
           <Card className="m-4">
             <CardBody>
-              <CardTitle>qsched</CardTitle>
-              <CardText>This is a public beta release of a 1D and 2D NUS scheduling routine.</CardText>
+              <CardText>Welcome to Qsched!
+              QSched is extremely flexible and powerful, but it is possible to create schedules that are not appropriate for
+              your application.</CardText>
+              <CardText> There is no substitute for visually inspecting the schedules you generate.</CardText>
+              <CardText></CardText>
+              <CardText> For a guide on how to use this site and more, please click <a href="http://www.facstaff.bucknell.edu/drovnyak/dsrlab_downloads.html">here.</a></CardText>
+
+
+              <hr/>
+              <Nav tabs>
+                <NavItem>
+                  <NavLink
+                    className={classnames({ active: this.state.activeTab === '1' })}
+                    onClick={() => { this.toggleTab('1'); }}>
+                  1 Dimension
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    className={classnames({ active: this.state.activeTab === '2' })}
+                    onClick={() => { this.toggleTab('2'); }}>
+                  2 Dimensions
+                  </NavLink>
+                </NavItem>
+              </Nav>
+              <hr/>
+              <Dropdown
+                id='pop'
+                isOpen={this.state.dropdownOpen}
+                toggle={()=>this.setState({dropdownOpen:!this.state.dropdownOpen})}>
+                <DropdownToggle caret>
+                  Example Schedules
+                </DropdownToggle>
+                <DropdownMenu>
+                {samples}
+                </DropdownMenu>
+
+              </Dropdown>
               <hr/>
               <Form onSubmit={this.handleRun}>
-                <FormGroup>
-                  <Label>
-                    Type of schedule generator
+
+              <FormGroup row>
+                  <Label sm={5}>Type of schedule generator in 1st dimension{" "}</Label>
+
+                  <Col sm={6} className="m-auto">
                     <Input type="select" id="type"
                       value={this.state.type} onChange={this.handleChange}>
                       <option>quant-exp</option>
@@ -120,95 +311,172 @@ class Qsched extends Component {
                       <option>linear</option>
                       <option>noweight</option>
                     </Input>
-                  </Label>
+                    </Col>
+                  <Col sm={1} className="m-auto">
+                  {'type' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
                 </FormGroup>
 
-                <FormGroup>
-                  <Label>
-                    Indel dimensions
+                {this.state.activeTab==='2' ?
+                <FormGroup row>
+                  <Label sm={5}>Type of schedule generator in 2nd dimension</Label>
+                  <Col sm={6} className="m-auto">
+                    <Input type="select" id="type2"
+                      value={this.state.type2} onChange={this.handleChange}>
+                      <option>quant-exp</option>
+                      <option>quant-poly</option>
+                      <option>quant-sin</option>
+                      <option>guass</option>
+                      <option>linear</option>
+                      <option>noweight</option>
+                    </Input>
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                  {'type' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+                </FormGroup> : ""
+                }
+
+                <FormGroup row>
+                  <Label sm={5}>Total points comprising Nyquist grid{" "}</Label>
+
+                      <Col sm={6} className="m-auto">
                     <Input type="text" id="dims"
                       value={this.state.dims} onChange={this.handleChange}/>
-                  </Label>
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
                 </FormGroup>
 
-                <FormGroup>
-                  <Label>
-                    Percent jitter for 2D quantiles
+
+                  {this.state.activeTab==='2'?
+                  <FormGroup row>
+                  <Label sm={5}>Percent jitter for 2D quantiles</Label>
+                  <Col sm={6} className="m-auto">
                     <Input type="text" id="jitter2d"
                       value={this.state.jitter2d} onChange={this.handleChange}/>
-                    <small className="form-text text-muted">(0.7 recommended; between .01-.99)</small>
-                  </Label>
-                </FormGroup>
-                <FormGroup>
-                  <Label>
-                    Number of points to be sampled along each dimension
-                    <Input type="text" id="bins"
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                    {'jitter2d' in this.help ?
+                      <Badge color="secondary" onClick={()=>this.showHelp('jitter2d')}> ?</Badge> : ""}
+                  </Col>
+                </FormGroup> : ""
+                }
+
+                <FormGroup row>
+                  <Label sm={5}>Number of points to be sampled</Label>
+                    <Col sm={6} className="m-auto">
+		    <Input type="text" id="bins"
                       value={this.state.bins} onChange={this.handleChange}/>
-                  </Label>
-                </FormGroup>
-                <FormGroup>
-                  <Label>
-                    Bias strength on exponent
-                    <Input type="text" id="bias"
-                      value={this.state.bias} onChange={this.handleChange}/>
-                  </Label>
-                </FormGroup>
-                <FormGroup>
-                  <Label>
-                    T2 evolution time for sampling in each indirect dimension
-                    <Input type="text" id="evolution"
-                      value={this.state.evolution} onChange={this.handleChange}/>
-                  </Label>
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                  {'bins' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
                 </FormGroup>
 
-                <FormGroup>
-                  <Label>
-                    Output type
+                <FormGroup row>
+                  <Label sm={5}>Bias - Affects characteristics of particular PDF</Label>
+                   <Col sm={6} className="m-auto">
+		    <Input type="text" id="bias"
+                      value={this.state.bias} onChange={this.handleChange}/>
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                  {'bias' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+                </FormGroup>
+
+                <FormGroup row>
+                  <Label sm={5}>Evolution - the degree of T2 that your PDF spans</Label>
+                    <Col sm={6} className="m-auto">
+		    <Input type="text" id="evolution"
+                      value={this.state.evolution} onChange={this.handleChange}/>
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                  {'evolution' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+                </FormGroup>
+
+                <FormGroup row>
+                  <Label sm={5}>Output type</Label>
+		                <Col sm={6} className="m-auto">
                     <Input type="select" id="output_type"
                       value={this.state.output_type} onChange={this.handleChange}>
                       <option>bruker</option>
                       <option>jeol</option>
                       <option>varian</option>
                     </Input>
-                  </Label>
-                </FormGroup>
-                <FormGroup>
-                  <label>
-                    Linewidth
-                    <Input type="text" id="linewidth"
-                      value={this.state.linewidth} onChange={this.handleChange}/>
-                    <small id="linewidthHelp" className="form-text text-muted">required for guassian option</small>
-                  </label>
-                </FormGroup>
-                <FormGroup>
-                  <Label>Percent of linear sampling
-                    <Input type="text" id="linear"
-                      value={this.state.linear} onChange={this.handleChange}
-                      />
-                  </Label>
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                  {'output_type' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
                 </FormGroup>
 
+                {this.state.type === 'guass' ?
+                <FormGroup row>
+                  <Label sm={5}>Linewidth</Label>
+                  <Col sm={6} className="m-auto">
+                    <Input type="text" id="linewidth"
+                      value={this.state.linewidth} onChange={this.handleChange}/>
+                    </Col>
+                    <Col sm={1} className="m-auto">
+                    {'linewidth' in this.help ?
+                      <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                    </Col>
+                </FormGroup> : ""}
+
+                {this.state.type === 'linear' ?
+                <FormGroup row>
+                  <Label sm={5}>Percent of linear sampling</Label>
+                  <Col sm={6} className="m-auto">
+                    <Input type="text" id="linear"
+                      value={this.state.linear} onChange={this.handleChange}/>
+                  </Col>
+                  <Col sm={1} className="m-auto">
+                  {'linear' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+                </FormGroup> : ""}
+
+
+
+
+                {this.state.activeTab==='2' ?
                 <FormGroup check>
-                  <Label check>
-                    <Input type="checkbox"  id="inclusion"
-                      checked={this.state.inclusion} onChange={this.handleChange}/>
-                    Inclusion (edge forcing)
-                  </Label>
-                </FormGroup>
-                <FormGroup check>
-                  <Label check>
-                    <Input type="checkbox" id="backfill"
-                      checked={this.state.backfill} onChange={this.handleChange}/>
-                    Backfill
-                  </Label>
-                </FormGroup>
-                <FormGroup check>
-                  <Label check>
-                    <Input type="checkbox" id="appendcorner"
-                      checked={this.state.appendcorner} onChange={this.handleChange}/>
-                    Append top right corner
-                  </Label>
-                </FormGroup>
+                    <Label check>
+                      <Input type="checkbox"  id="inclusion"
+                        checked={this.state.inclusion} onChange={this.handleChange}/>
+                      Inclusion (edge forcing)
+                    </Label>
+                  </FormGroup> : ""
+                }
+
+                {this.state.activeTab==='2' ?
+                  <FormGroup check>
+                    <Label check>
+                      <Input type="checkbox" id="backfill"
+                        checked={this.state.backfill} onChange={this.handleChange}/>
+                      Backfill
+                    </Label>
+                  </FormGroup> : ""
+                }
+
+                {this.state.activeTab==='2' ?
+                  <FormGroup check>
+                    <Label check>
+                      <Input type="checkbox" id="appendcorner"
+                        checked={this.state.appendcorner} onChange={this.handleChange}/>
+                      Append top right corner
+                    </Label>
+                  </FormGroup> : ""
+                }
 
               </Form>
               <hr/>
