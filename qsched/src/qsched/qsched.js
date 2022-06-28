@@ -18,7 +18,8 @@ import Qlogo from '../Qlogo.png'
 
 let fileDownload = require('js-file-download')
 
-let app = 'http://localhost:5000/qsched'
+let app = 'https://linuxremote3.bucknell.edu/qsched/qsched'
+//let app = 'http://localhost:5000/qsched'
 //let app = 'https://3w96mpfgyb.execute-api.us-east-1.amazonaws.com/dev/qsched'
 
 class Qsched extends Component {

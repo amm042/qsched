@@ -63,11 +63,25 @@ they were passed on the command line, so generating 2D schedules can be done by
 passing arguments for additional dimensions on the command line as is done
 but the original python script.
 
+#### AWS Lambda server
+
 The Flask application is deployed to AWS Lambda via [Zappa](https://github.com/Miserlou/Zappa). The file `zappa_settings.json`
 configures Zappa (you need to first setup your AWS credentials).
 
 NOTE: I could not get this working on AWS when `"slim_handler": true`. There
 are dependency problems with SciPy/NumPy in this case.
+
+#### Local uWSGI server
+
+In 2022 we transitioned from AWS lambda to a locally hosted solution using uWSGI and flask directly.
+
+see [uWSG](https://flask.palletsprojects.com/en/2.1.x/deploying/uwsgi/).
+
+We have uwsgi installed so, it just has to be run with the qsched flask app:
+
+```
+$ uwsgi --http 0.0.0.0:4002 --master -p 2 --enable-threads -w wsgi_qsched:app
+```
 
 ## about qsched
 

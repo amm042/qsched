@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, redirect
 from flask_cors import CORS
 import json
 #import collections
@@ -7,11 +7,14 @@ from collections.abc import Sequence
 # load the qsched_097 module.
 from qsched_097 import qsched as qs
 
+import os.path
+
 
 """
 How to run for debugging:
 $ export FLASK_APP=server.py
-$ flask run
+$ export FLASK_ENV=development
+$ flask run --port 4002 --host 0.0.0.0
 """
 
 qapp = Flask(__name__)
@@ -39,9 +42,20 @@ def numify(typestr, value):
             return float(value)
     else:
         raise NotImplementedError('type ({}) isn\'t supported'.format(typestr))
+
+
+@qapp.route('/favicon.ico')
+def favicon():
+    p = os.path.join(qapp.root_path, 'static')
+    qapp.logger.info(f"got favico req, path is {p}")
+    return send_from_directory(p,
+                               'favicon.ico', 
+                               mimetype='image/vnd.microsoft.icon')
+
 @qapp.route('/', methods=["GET"])
 def root():
-    return jsonify({"status": "OK"})
+    #return jsonify({"status": "OK"})
+    return redirect('https://eg.bucknell.edu/~qsched')
 
 @qapp.route('/qsched', methods=["POST"])
 def qsched():
