@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
-import collections
+#import collections
+from collections.abc import Sequence
 
 # load the qsched_097 module.
 from qsched_097 import qsched as qs
@@ -27,12 +28,12 @@ cors = CORS(qapp,
 def numify(typestr, value):
     # given a typestring convert the value appropriately.
     if typestr == 'int':
-        if isinstance(value, collections.Sequence) and not isinstance(value, str):
+        if isinstance(value, Sequence) and not isinstance(value, str):
             return [numify(typestr, x) for x in value]
         else:
             return int(value)
     elif typestr == 'float':
-        if isinstance(value, collections.Sequence) and not isinstance(value, str):
+        if isinstance(value, Sequence) and not isinstance(value, str):
             return [numify(typestr, x) for x in value]
         else:
             return float(value)

@@ -8,12 +8,18 @@ import classnames from 'classnames'
 import queryString from 'query-string'
 // to 'download' js objects (csv results)
 
-import createHistory from 'history/createBrowserHistory'
+//import createHistory from 'history/createBrowserHistory'
+
+
+import { createBrowserHistory } from 'history'
+
+//.createBrowserHistory
+import Qlogo from '../Qlogo.png'
 
 let fileDownload = require('js-file-download')
 
-//let app = 'http://localhost:5000/qsched'
-let app = 'https://3w96mpfgyb.execute-api.us-east-1.amazonaws.com/dev/qsched'
+let app = 'http://localhost:5000/qsched'
+//let app = 'https://3w96mpfgyb.execute-api.us-east-1.amazonaws.com/dev/qsched'
 
 class Qsched extends Component {
   constructor(props){
@@ -43,8 +49,6 @@ class Qsched extends Component {
       type: "Is there a ‘one-size-fits-all’ schedule? There are many ways to select and optimize schedules, but if you want an “everyday” schedule that can be used in a variety of settings, experiences suggests that sampling 25-33% of total points, a quant-sin or quant-poly generator, Bias = 1.5 and Evolution = 2.0 generally results in widely applicable schedules.",
       jitter2d: "Jitter (between 0.01-0.99) defines the length  of each edge of a box that is centered in each quantile; thus specifying jitter = 0.7 means that the sample will be jittered in a (-.7 x 0.7) ---> 50% centered box"
     }
-
-
 
     this.samples = {
           1: {
@@ -98,7 +102,8 @@ class Qsched extends Component {
     this.toggleModal = this.toggleModal.bind(this)
     this.toggleTab = this.toggleTab.bind(this)
     this.checkLocation = this.checkLocation.bind(this)
-    this.history = createHistory()
+    //this.history = createHistory()
+    this.history = createBrowserHistory()
 
     this.unlisten = this.history.listen(this.checkLocation)
 
@@ -196,7 +201,7 @@ class Qsched extends Component {
     })
       .then(res => res.json())
       .then(res => {
-        //console.log("got back s", res)
+        console.log("got back s", res)
 
         if (res.error !== undefined){
           // something went wrong, show the modal dialog with the message
@@ -238,6 +243,7 @@ class Qsched extends Component {
           })}}>{x}</DropdownItem>
     })
     // console.log('SAMPLES:', samples)
+    //<img src="http://www.facstaff.bucknell.edu/drovnyak/QSched_MarkDSR_Logo128W.png" height="100" width="128" alt="Logo"  />
     return(
         <div>
           <Modal isOpen={this.state.showModal} toggle={this.toggleModal}>
@@ -257,9 +263,8 @@ class Qsched extends Component {
               <Button color="primary" onClick={()=>this.showHelp('')}>OK</Button>
             </ModalFooter>
           </Modal>
-
-
-          <img src="http://www.facstaff.bucknell.edu/drovnyak/QSched_MarkDSR_Logo128W.png" height="100" width="128" alt="Logo"  />
+          
+          <img src={Qlogo} height="100" width="128" alt="Logo"  />
 
           <Card className="m-4">
             <CardBody>
@@ -268,7 +273,7 @@ class Qsched extends Component {
               your application.</CardText>
               <CardText> There is no substitute for visually inspecting the schedules you generate.</CardText>
               <CardText></CardText>
-              <CardText> For a guide on how to use this site and more, please click <a href="http://www.facstaff.bucknell.edu/drovnyak/dsrlab_downloads.html">here.</a></CardText>
+              <CardText> For a guide on how to use this site and more, please click <a href="https://sites.google.com/prod/bucknell.edu/drovnyak/softwaredownloads">here.</a></CardText>
 
 
               <hr/>
