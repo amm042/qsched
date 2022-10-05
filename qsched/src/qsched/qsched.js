@@ -39,7 +39,7 @@ class Qsched extends Component {
       bins: '',
       bias: '1.0',
       evolution: '',
-      output_type: 'varian',
+      output_type: '0-start',
       inclusion: true,
       backfill: true,
       linewidth: '1.0',
@@ -55,19 +55,21 @@ class Qsched extends Component {
           1: {
                   'Basic HSQC': {
                     type: 'quant-sin',
-                    dims: '256',
-                    bins: '96',
+                    dims: '512',
+                    bins: '128',
                     bias: '1.5',
-                    evolution: '2.0',
-                    output_type: 'varian'
-                  },
+                    evolution: '3.0',
+                    backfill: '15',
+                    output_type: '0-start'
+                    },
                   'High Res HSQC': {
                     type: 'quant-sin',
                     dims: '1024',
                     bins: '256',
                     bias: '1.5',
-                    evolution: '2.5',
-                    output_type: 'varian'}
+                    backfill: '30',
+                    evolution: '3.0',
+                    output_type: '0-start'}
                 },
           2: {
             'Basic HNCA': {
@@ -78,7 +80,7 @@ class Qsched extends Component {
               bins: '32 20',
               bias: '1.5 1.5',
               evolution: '2.0 2.0',
-              output_type: 'varian',
+              output_type: '0-start',
               inclusion: true,
               backfill: true,
               appendcorner: true},
@@ -90,11 +92,84 @@ class Qsched extends Component {
               bins: '48 20',
               bias: '1.5 1.5',
               evolution: '2.0 2.0',
-              output_type: 'varian',
+              output_type: '0-start',
               inclusion: false,
               backfill: true,
               appendcorner: true
           }
+          },
+          3: {
+            '32 x 128 (25%)': {
+              type: 'quant-sin',
+              dims: '128',
+              bins: '32',
+              bias: '1.5',
+              evolution:'3.0',
+              backfill: '8',
+              output_type: '0-start'
+            },
+            '42 x 128 (33%)':{
+              type: 'quant-exp',
+              dims: '128',
+              bins: '42',
+              bias: '1.0',
+              evolution: '3.0',
+              backfill: '10',
+              output_type: '0-start'
+            },
+            '64 x 256 (25%)':{
+              type: 'quant-sin',
+              dims: '256',
+              bins: '64',
+              bias: '1.5',
+              evolution: '3.0',
+              backfill: '12',
+              output_type: '0-start'
+            },
+            '85 x 256 (33%)':{
+              type: 'quant-exp',
+              dims: '256',
+              bins: '85',
+              bias: '1.0',
+              evolution: '3.0',
+              backfill: '18',
+              output_type: '0-start'
+            },
+            '130 x 512 (25%)':{
+              type: 'quant-sin',
+              dims: '512',
+              bins: '64',
+              bias: '1.5',
+              evolution: '3.0',
+              backfill: '15',
+              output_type: '0-start'
+            },
+            '169 x 512 (33%)':{
+              type: 'quant-exp',
+              dims: '512',
+              bins: '169',
+              bias: '1.0',
+              evolution: '3.0',
+              backfill: '15',
+              output_type: '0-start'
+            },
+            '257 x 1024 (25%)': {
+              type: 'quant-sin',
+              dims: '1024',
+              bins: '256',
+              bias: '1.5',
+              evolution: '3.0',
+              backfill: '30',
+              output_type: '0-start'},
+            '337 x 1024 (33%)': {
+              type: 'quant-exp',
+              dims: '1024',
+              bins: '337',
+              bias: '1.0',
+              evolution: '3.0',
+              backfill: '30',
+              output_type: '0-start'
+            }
           }
         }
 
@@ -293,8 +368,16 @@ class Qsched extends Component {
                   2 Dimensions
                   </NavLink>
                 </NavItem>
+                <NavItem>
+                  <NavLink
+                    className={classnames({ active: this.state.activeTab === 3 })}
+                    onClick={() => { this.toggleTab(3); }}>
+                  One-Click 1D Scheduling
+                  </NavLink>
+                </NavItem>
               </Nav>
               <hr/>
+              {this.state.activeTab !== 3 ?            
               <Dropdown
                 id='pop'
                 isOpen={this.state.dropdownOpen}
@@ -304,12 +387,91 @@ class Qsched extends Component {
                 </DropdownToggle>
                 <DropdownMenu>
                 {samples}
-                </DropdownMenu>
-
-              </Dropdown>
+                </DropdownMenu> 
+              </Dropdown> :"" }
+              {this.state.activeTab === 3 ?
+              <Dropdown
+                id='pop'
+                isOpen={this.state.dropdownOpen}
+                toggle={()=>this.setState({dropdownOpen:!this.state.dropdownOpen})}>
+                  <DropdownToggle caret>
+                    Select One-Click Schedule
+                  </DropdownToggle>
+                  <DropdownMenu>
+                  {samples}  
+                  </DropdownMenu>
+                </Dropdown> :""}
               <hr/>
               <Form onSubmit={this.handleRun}>
+              {this.state.activeTab === 3 ?
+              <FormGroup row>
+                <Label sm={5}>Type of schedule generator in the 1st dimension</Label>
+                <Col sm={6} className="m-auto">
+                <Input type="text" id="type" disabled={true}
+                  value={this.state.type} onChange={this.handleChange}>
+                </Input>
+                </Col>
+                <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+              </FormGroup>:""}
+              
+              {this.state.activeTab === 3 ?
+              <FormGroup row>
+                <Label sm={5}>Total points comprising Nyquist Grid</Label>
+                <Col sm={6} className="m-auto">
+                <Input type="text" id="dims" disabled={true}
+                  value={this.state.dims} onChange={this.handleChange}>
+                </Input>
+                </Col>
+                <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+              </FormGroup>:""}
+              {this.state.activeTab === 3 ?
+              <FormGroup row>
+                <Label sm={5}>Number of points to be sampled</Label>
+                <Col sm={6} className="m-auto">
+                <Input type="text" id="bins" disabled={true}
+                  value={this.state.bins} onChange={this.handleChange}>
+                </Input>
+                </Col>
+                <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+              </FormGroup>:""}
 
+              {this.state.activeTab === 3 ?
+              <FormGroup row>
+                <Label sm={5}>Bias - affects characteristics of desired PDF</Label>
+                <Col sm={6} className="m-auto">
+                <Input type="text" id="bias" disabled={true}
+                  value={this.state.bias} onChange={this.handleChange}>
+                </Input>
+                </Col>
+                <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+              </FormGroup>:""}
+              {this.state.activeTab === 3 ?
+              <FormGroup row>
+                <Label sm={5}>Evolution - the degree of T2 that your PDF spans</Label>
+                <Col sm={6} className="m-auto">
+                <Input type="text" id="evolution" disabled={true}
+                  value={this.state.evolution} onChange={this.handleChange}>
+                </Input>
+                </Col>
+                <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+              </FormGroup>:""}
+
+              {this.state.activeTab !== 3 ?
               <FormGroup row>
                   <Label sm={5}>Type of schedule generator in 1st dimension{" "}</Label>
 
@@ -328,7 +490,7 @@ class Qsched extends Component {
                   {'type' in this.help ?
                     <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
                   </Col>
-                </FormGroup>
+                </FormGroup> : "" }
 
                 {this.state.activeTab === 2 ?
                 <FormGroup row>
@@ -350,7 +512,7 @@ class Qsched extends Component {
                   </Col>
                 </FormGroup> : ""
                 }
-
+                {this.state.activeTab !== 3 ?
                 <FormGroup row>
                   <Label sm={5}>Total points comprising Nyquist grid{" "}</Label>
 
@@ -362,7 +524,7 @@ class Qsched extends Component {
                   {'dims' in this.help ?
                     <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
                   </Col>
-                </FormGroup>
+                </FormGroup> : "" }
 
 
                   {this.state.activeTab === 2?
@@ -378,7 +540,7 @@ class Qsched extends Component {
                   </Col>
                 </FormGroup> : ""
                 }
-
+              {this.state.activeTab !== 3 ?
                 <FormGroup row>
                   <Label sm={5}>Number of points to be sampled</Label>
                     <Col sm={6} className="m-auto">
@@ -389,8 +551,9 @@ class Qsched extends Component {
                   {'bins' in this.help ?
                     <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
                   </Col>
-                </FormGroup>
+                </FormGroup> : "" }
 
+                {this.state.activeTab !== 3 ?
                 <FormGroup row>
                   <Label sm={5}>Bias - Affects characteristics of particular PDF</Label>
                    <Col sm={6} className="m-auto">
@@ -401,8 +564,9 @@ class Qsched extends Component {
                   {'bias' in this.help ?
                     <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
                   </Col>
-                </FormGroup>
+                </FormGroup> : "" }
 
+                {this.state.activeTab !== 3 ?
                 <FormGroup row>
                   <Label sm={5}>Evolution - the degree of T2 that your PDF spans</Label>
                     <Col sm={6} className="m-auto">
@@ -413,16 +577,40 @@ class Qsched extends Component {
                   {'evolution' in this.help ?
                     <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
                   </Col>
-                </FormGroup>
-
+                </FormGroup> : "" }
+              {this.state.activeTab === 1 ?
+              <FormGroup row>
+                <Label sm={5}>Number of points in linear backfill</Label>
+                <Col sm={6} className="m-auto">
+                  <Input type="text" id="type"
+                    value={this.state.backfill} onChange={this.handleChange}>
+                    </Input>
+                </Col>
+                <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+              </FormGroup>:""}
+              {this.state.activeTab === 3 ?
+              <FormGroup row>
+                <Label sm={5}>Number of points in linear backfill</Label>
+                <Col sm={6} className="m-auto">
+                  <Input type="text" id="type" disabled={true}
+                    value={this.state.backfill} onChange={this.handleChange}> 
+                    </Input>
+                </Col>
+                <Col sm={1} className="m-auto">
+                  {'dims' in this.help ?
+                    <Badge color="secondary" onClick={()=>this.showHelp('type')}> ?</Badge> : ""}
+                  </Col>
+              </FormGroup>:""}
                 <FormGroup row>
                   <Label sm={5}>Output type</Label>
 		                <Col sm={6} className="m-auto">
                     <Input type="select" id="output_type"
                       value={this.state.output_type} onChange={this.handleChange}>
-                      <option>bruker</option>
-                      <option>jeol</option>
-                      <option>varian</option>
+                      <option>0-start</option>
+                      <option>1-start</option>
                     </Input>
                   </Col>
                   <Col sm={1} className="m-auto">
@@ -458,8 +646,6 @@ class Qsched extends Component {
                 </FormGroup> : ""}
 
 
-
-
                 {this.state.activeTab===2 ?
                 <FormGroup check>
                     <Label check>
@@ -476,8 +662,7 @@ class Qsched extends Component {
                       <Input type="checkbox" id="backfill"
                         checked={this.state.backfill} onChange={this.handleChange}/>
                       Backfill
-                    </Label>
-                  </FormGroup> : ""
+                    </Label>                  </FormGroup> : ""
                 }
 
                 {this.state.activeTab===2 ?
@@ -489,7 +674,8 @@ class Qsched extends Component {
                     </Label>
                   </FormGroup> : ""
                 }
-
+             
+        
               </Form>
               <hr/>
 
