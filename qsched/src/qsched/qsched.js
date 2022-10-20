@@ -255,7 +255,7 @@ class Qsched extends Component {
   }
   handleChange(e){
     let k = {}
-    console.log("change: ", e.target.id, e.target.type)
+    //console.log("change: ", e.target.id, e.target.type)
     k[e.target.id] = e.target.type==='checkbox' ? e.target.checked : e.target.value
     this.setState(k)
   }
@@ -329,7 +329,7 @@ class Qsched extends Component {
           })}}>{x}</DropdownItem>
     })
 
-    console.log("backfill is", this.state.backfill)
+    //console.log("backfill is", this.state.backfill)
     // console.log('SAMPLES:', samples)
     //<img src="http://www.facstaff.bucknell.edu/drovnyak/QSched_MarkDSR_Logo128W.png" height="100" width="128" alt="Logo"  />
     return(
