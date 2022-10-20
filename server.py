@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from qsched_098 import qsched as qs
 import os.path
 
-
+#from pprint import pprint
 """
 How to run for debugging:
 $ export FLASK_APP=server.py
@@ -71,11 +71,15 @@ def qsched():
             'dims': 'int',
             'jitter2d': 'float',
             'bins': 'int',
+            'backfill': 'int',
             'bias': 'float',
             'evolution': 'float',
             'linewidth': 'float',
             'linear': 'float'
         }
+
+        #pprint(args)
+        #print ("ARGS BACKFILL: ", args['backfill'])
 
         # defines the array-like arguments
         twodlist = ['type', 'dims', 'bins', 'bias', 'evolution',
@@ -85,7 +89,8 @@ def qsched():
                 args[n] = args[n].replace(","," ").split(" ")
 
         # and the boolean 0/1 arguments
-        bools = ['inclusion', 'backfill', 'appendcorner']
+        # moved backfill to integer argument
+        bools = ['inclusion', 'appendcorner']
         for n in bools:
             if n in args:
                 args[n] = 1 if args[n] else 0
@@ -102,6 +107,9 @@ def qsched():
                         x, nums), "args": args})
 
         #qapp.logger.info(args)
+        #qapp.logger.info(f"BACKFILL to QS: {args['backfill']}")
+
+        #print ("TO QS BACKFILL: ", args['backfill'])
 
         # run the scheduler and pass the results back to the client as JSON
         return jsonify(qs(args))
