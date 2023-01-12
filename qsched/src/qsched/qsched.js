@@ -138,7 +138,7 @@ class Qsched extends Component {
             '130 x 512 (25%)':{
               type: 'quant-sin',
               dims: '512',
-              bins: '64',
+              bins: '128',
               bias: '1.5',
               evolution: '3.0',
               backfill: '15',
